@@ -20,16 +20,17 @@ def esia_parsing():
 
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36")
+
+    options.add_argument('--headless')     # Бот работает в фоновом режиме
+
     driver = webdriver.Chrome(
         executable_path="/media/maks/Новый том/Python/lessons/linux_puthon_lessons/parsing_lessons/webdriver/chromedriver_linux64/chromedriver",
         options=options
     )
 
-    # xpath_button = '/html/body/portal-root/header/lib-header/div/div/div[2]/div[2]/div/div/lib-login[2]/a'
-    # xpath_enter = '/html/body/esia-root/div/esia-idp/div/div[1]/form/div[3]/button'
-
     try:
         driver.get("https://esia.gosuslugi.ru")
+        print('start')
         driver.implicitly_wait(5)
 
         login = driver.find_element(By.ID, "login")
@@ -42,6 +43,7 @@ def esia_parsing():
         login.send_keys(esia_di_login)                    # ввод логина и пароля
         password.send_keys(esia_di_password)
         password.send_keys(Keys.ENTER)                    # вход по нажатии Enter, после ввода пароля
+        print('login')
         driver.implicitly_wait(10)
 
         # cookies
@@ -50,126 +52,159 @@ def esia_parsing():
 
         # Переход по ссылке на главную страницу ЕСИА
         driver.find_element(By.CLASS_NAME, 'btn-gotoback').click()    # нажатие ссылки
+        print('esia')
         time.sleep(10)
+        # driver.implicitly_wait(5)
 
         # Выбор компании
-        xpath_company = '/html/body/app-root/main/div/div/div/div/button[2]'
-        driver.find_element(By.XPATH, xpath_company).click()
+        driver.find_element(By.XPATH, '//div[@class="grid-row"]/button[2]').click()
+        print('company')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Переход в раздел "Услуги"
-        xpath_category = '/html/body/div[1]/div[1]/div[2]/div/div/div/div[2]/div/div[1]/a'
-        driver.find_element(By.XPATH, xpath_category).click()
+        # xpath_category = '/html/body/div[1]/div[1]/div[2]/div/div/div/div[2]/div/div[1]/a'
+        # driver.find_element(By.XPATH, xpath_category).click()
+        driver.find_element(By.XPATH, '//div[@class="flex-container justify-end"]/div[1]').click()
+        print('category')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Переход в раздел "Органы власти"
-        xpath_structure = '/html/body/div[1]/div[3]/div[1]/div[2]/div/div/div[2]/div/div[2]/div/div[2]/a'
+        xpath_structure = '//div[@class="limiter"]/div[2]'
+        # driver.find_element(By.XPATH, '//a[@class="tab ng-binding active"]').click()
         driver.find_element(By.XPATH, xpath_structure).click()
+        print('structure')
         time.sleep(5)
+        # driver.implicitly_wait(10)
 
         # Переход в раздел "ФССП"
-        xpath_fssp = '/html/body/div[1]/div[3]/div[1]/div[2]/div/div/div[3]/div/div[1]/div[2]/div[2]/div/div/a'
+        xpath_fssp = '//div[@class="popular-structure"]/div[2]/div[2]'
         driver.find_element(By.XPATH, xpath_fssp).click()
+        print('fssp')
         time.sleep(5)
+        # driver.implicitly_wait(10)
 
         # Выбор услуги по предоставлению инфы об ИП
-        xpath_service_ip = '/html/body/div[1]/div[3]/div[1]/div[2]/div/div/div[2]/ng-include/div[2]/a[2]/div[2]/div'
+        xpath_service_ip = '//div[@class="structure-passport-list ng-scope"]/a[2]'
         driver.find_element(By.XPATH, xpath_service_ip).click()
-        driver.implicitly_wait(5)
+        print('service_ip')
+        time.sleep(5)
+        # driver.implicitly_wait(10)
+
 
         # Выбор инфы о наличие ИП
-        xpath_information_ip = '/html/body/div[1]/div[3]/div[1]/div[2]/div/div/div[2]/div[1]/div[1]/ul/li[4]'
+        xpath_information_ip = '//li[@data-ng-if="!service.hideAfterFilter"][2]'
         driver.find_element(By.XPATH, xpath_information_ip).click()
-        time.sleep(10)
+        print('information_ip')
+        time.sleep(5)
+        # driver.implicitly_wait(10)
 
-        # with open("index_selenium.html", "w") as file:    # Сохраняю HTML код страницы в файл !!!! Данный код только для записи HTML кода в файл!!!
-        #     file.write(driver.page_source)
+        # # with open("index_selenium.html", "w") as file:    # Сохраняю HTML код страницы в файл !!!! Данный код только для записи HTML кода в файл!!!
+        # #     file.write(driver.page_source)
 
         # Проверка наличия шаблона
         page_notifications = driver.page_source
-        soup_page_notifications = BeautifulSoup(page_notifications, 'html.parser')
-        if 'conf-modal conf-modal--short' in soup_page_notifications:
-            xpath_checking_template = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-cf-ui-modal-container/div/div/epgu-cf-ui-cta-modal/div[2]/div[2]/div/div/div[2]/lib-button[1]'
-            driver.find_element(By.XPATH, xpath_checking_template).click()
+        # soup_page_notifications = BeautifulSoup(page_notifications, 'html.parser')
+        if 'conf-modal conf-modal--short' in page_notifications:
+            driver.find_element(By.XPATH, '//div[@class="conf-modal__controls"]/lib-button[1]').click()
+            print('проверка шаблона')
             time.sleep(5)
+            # driver.implicitly_wait(5)
+
 
         # Выбор "Начать"
-        xpath_start = '//*[@id="print-page"]/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-info-screen/epgu-cf-ui-screen-container/div/epgu-cf-ui-constructor-screen-pad/epgu-constructor-screen-buttons/lib-button/div'
-        driver.find_element(By.XPATH, xpath_start).click()
-        time.sleep(5)
+        driver.find_element(By.XPATH, '//div[@class="button-container"]').click()
+        print('начать')
+        time.sleep(10)
+        # driver.implicitly_wait(10)
 
         # Выбор "Нет"
-        xpath_no_button = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-question-screen/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-answer-button[2]/epgu-cf-ui-long-button'
+        xpath_no_button = '//epgu-constructor-answer-button[@class="quiz__item"][2]/epgu-cf-ui-long-button[@class="answer-btn"]'
         driver.find_element(By.XPATH, xpath_no_button).click()
+        print('no_button')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Выбор "Верно" ФИО
-        xpath_correctly_name = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-unique-screen/epgu-constructor-component-unique-resolver/epgu-constructor-confirm-personal-user-data/epgu-constructor-default-unique-screen-wrapper/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-screen-buttons/lib-button/div'
+        xpath_correctly_name = '//div[@class="button-container"]'
         driver.find_element(By.XPATH, xpath_correctly_name).click()
+        print('correctly_name')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Выбор "Верно" организация
-        xpath_correctly_user = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-unique-screen/epgu-constructor-component-unique-resolver/epgu-constructor-confirm-personal-user-legal-data/epgu-constructor-default-unique-screen-wrapper/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-screen-buttons/lib-button/div'
+        xpath_correctly_user = '//div[@class="button-container"]'
         driver.find_element(By.XPATH, xpath_correctly_user).click()
+        print('user')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Выбор "Верно" адрес регистрации
-        xpath_correctly_registration = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-unique-screen/epgu-constructor-component-unique-resolver/epgu-constructor-registration-addr/epgu-constructor-default-unique-screen-wrapper/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-screen-buttons/lib-button/div'
+        xpath_correctly_registration = '//div[@class="button-container"]'
         driver.find_element(By.XPATH, xpath_correctly_registration).click()
+        print('registration')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Выбор "Взыскатель"
-        xpath_claimer = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-question-screen/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-answer-button[2]/epgu-cf-ui-long-button'
+        xpath_claimer = '//epgu-constructor-answer-button[@class="quiz__item"][2]/epgu-cf-ui-long-button[@class="answer-btn"]'
         driver.find_element(By.XPATH, xpath_claimer).click()
+        print('claimer')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         # Выбор "Да"
-        xpath_ok_start = '/html/body/div/div/portal-new-sf-player/epgu-constructor-form-player/epgu-cf-ui-main-container/epgu-constructor-screen-resolver/epgu-constructor-question-screen/epgu-cf-ui-screen-container/div/div[2]/epgu-constructor-answer-button[1]/epgu-cf-ui-long-button'
+        xpath_ok_start = '//epgu-constructor-answer-button[@class="quiz__item"][1]/epgu-cf-ui-long-button[@class="answer-btn"]'
         driver.find_element(By.XPATH, xpath_ok_start).click()
+        print('загрузка должников')
         time.sleep(30)
+        # driver.implicitly_wait(60)
 
         # Получение ссылок на ИП
-        page_ip = driver.page_source
-        soup_page_ip = BeautifulSoup(page_ip, 'html.parser')
-        block_ip = soup_page_ip.find_all('div', class_='shadow-container mb-24')
-        # body > div > div > div.flex-container.flex-column.flex-1-0.mb-32.mb-md-64 > app-ip-list > div > div > div:nth-child(4)
-        # /html/body/div/div/div[1]/app-ip-list/div/div/div[3]
-        # /html/body/div/div/div[1]/app-ip-list/div/div/div[4]
-        # /html/body/div/div/div[1]/app-ip-list/div/div/div[22]
-        print(len(block_ip))
-        count = 1
+        # page_ip = driver.page_source
+        # soup_page_ip = BeautifulSoup(page_ip, 'html.parser')
+        # block_ip = soup_page_ip.find_all('div', class_='shadow-container mb-24')
+        # # body > div > div > div.flex-container.flex-column.flex-1-0.mb-32.mb-md-64 > app-ip-list > div > div > div:nth-child(4)
+        # # /html/body/div/div/div[1]/app-ip-list/div/div/div[3]
+        # # /html/body/div/div/div[1]/app-ip-list/div/div/div[4]
+        # # /html/body/div/div/div[1]/app-ip-list/div/div/div[22]
+        # print(len(block_ip))
+        # count = 1
         # for x in range(1, 21):
-        xpath_x = '/html/body/div/div/div[1]/app-ip-list/div/div/div[3]'
+        xpath_x = '//div[@class="shadow-container mb-24"][2]'
         driver.find_element(By.XPATH, xpath_x).click()
+        print('первый ИП')
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         driver.switch_to.window(driver.window_handles[1])
+        print('переход на вторую вкладку')
         # count += 1
         time.sleep(5)
+        # driver.implicitly_wait(5)
 
         page_data = driver.page_source
         time.sleep(1)
-        driver.close()
-
-        soup_data = BeautifulSoup(page_data, 'html.parser')
-
-        number_ep = soup_data.find('h4', class_='main-title mb-16').text.strip()
-        current_debt = soup_data.find('span', class_='amount-owed mr-md-24 mb-24 mb-md-0').text.strip()
-        border_block = soup_data.find_all('div', class_='border-block mb-24')
-        main_debt = border_block[0].find_all('span', class_='text-plain')[0].text
-        performance_fee = border_block[0].find_all('span', class_='text-plain')[1].text
-        redeemed_part = border_block[0].find_all('span', class_='text-plain')[2].text
-        reason = border_block[1].find_all('span', class_='info-text')[0].text
-        footing = border_block[1].find_all('span', class_='info-text')[1].text
-        debtor = border_block[2].find('p', class_='info-text bold mb-12').text.strip()
-        birthday = border_block[2].find_all('span', class_='info-text')[0].text
-        place_of_birth = border_block[2].find_all('span', class_='info-text')[1].text
-        restriction = border_block[3].find('span', class_='green-frame').text.strip()
-        creditor = border_block[4].find('p', class_='info-text bold mb-16').text.strip()
-        bailiff = border_block[5].find('p', class_='info-text bold mb-12').text.strip()
-        bailiff_tel = border_block[5].find_all('span', class_='info-text')[0].text
-        rosp = border_block[5].find_all('span', class_='info-text')[1].text
-        address_rosp = border_block[5].find_all('span', class_='info-text')[2].text
+        #
+        # soup_data = BeautifulSoup(page_data, 'html.parser')
+        #
+        number_ep = driver.find_element(By.XPATH, '//h4[@class="main-title mb-16"]').text
+        current_debt = driver.find_element(By.XPATH, '//span[@class="amount-owed mr-md-24 mb-24 mb-md-0"]').text
+        main_debt = driver.find_element(By.XPATH, '//div[@class="flex-container flex-column mb-16"][1]/span[2]').text
+        performance_fee = driver.find_element(By.XPATH, '//div[@class="flex-container flex-column mb-16"][2]/span[2]').text
+        redeemed_part = driver.find_element(By.XPATH, '//div[@class="flex-container flex-column mb-16"][3]/span[2]').text
+        reason = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][2]/div[1]/span[2]').text
+        footing = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][2]/div[2]/span[2]').text
+        debtor = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][3]/p').text
+        birthday = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][3]/div[1]/span[2]').text
+        place_of_birth = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][3]/div[2]/span[2]').text
+        restriction = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][4]/div/div/span').text
+        creditor = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][5]/p').text
+        bailiff = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][6]/p').text
+        bailiff_tel = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][6]/div[1]/span[2]').text
+        rosp = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][6]/div[2]/span[2]').text
+        address_rosp = driver.find_element(By.XPATH, '//div[@class="border-block mb-24"][6]/div[3]/span[2]').text
 
         executive_production.append({
             '№ Исполнительного производства': number_ep,
@@ -191,6 +226,12 @@ def esia_parsing():
         })
 
         print(f'{executive_production = }')
+
+        driver.close()
+        print('вкладка закрыта')
+        time.sleep(2)
+
+        driver.switch_to.window(driver.window_handles[0])
 
 
 
