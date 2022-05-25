@@ -1,4 +1,6 @@
 '''
+!!!ОСНОВНОЙ МОДУЛЬ ДЛЯ ПАРСИНГА ЕСИА!!!
+
 Парсинга сайта Госуслуги.
 Раздел ФССП - сведения о наличие ИП.
 
@@ -13,7 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys     # Модуль для нажатия кнопки (например при авторизации)
 # from selenium.webdriver.support.ui import WebDriverWait
 # from selenium.webdriver.support import expected_conditions as EC
-import pickle
+# import pickle
 import time
 from datetime import date
 # import datetime
@@ -28,10 +30,10 @@ def esia_parsing():
     options = webdriver.ChromeOptions()
     options.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36")
 
-    # options.add_argument('--headless')     # Бот работает в фоновом режиме
+    options.add_argument('--headless')     # Бот работает в фоновом режиме
 
     driver = webdriver.Chrome(
-        executable_path="/media/maks/Новый том/Python/lessons/linux_puthon_lessons/parsing_lessons/webdriver/chromedriver_linux64/chromedriver",
+        executable_path="/media/maks/Новый том/Python/work/esia_fssp/webdriver/chromedriver_linux64/chromedriver",
         options=options
     )
     driver.implicitly_wait(60)
@@ -94,7 +96,6 @@ def esia_parsing():
 
 
             # Переход в раздел "Услуги"
-
             # xpath_category = '//div[@class="flex-container justify-end"]/div[1]'
             xpath_category = '//a[@data-ng-href="/catalog?from=lmain"]'
             # driver.implicitly_wait(10)
@@ -103,7 +104,6 @@ def esia_parsing():
             time.sleep(3)
 
             # Переход в раздел "Органы власти"
-
             xpath_structure = '//div[@class="limiter"]/div[2]'
             # driver.implicitly_wait(10)
             driver.find_element(By.XPATH, xpath_structure).click()
@@ -223,7 +223,7 @@ def esia_parsing():
                 logging.info(f'ИП {count + 1}')
                 xpath_x = f'//div[@class="shadow-container mb-24"][{count + 1}]/h3/a|//div[@class="shadow-container"][1]/h3/a'
                 driver.find_element(By.XPATH, xpath_x).click()
-                time.sleep(2)
+                time.sleep(1)
                 # print('загрузка ИП')
 
                 xpath_details_click = '//div[@class="toggle-link mb-24"]'
@@ -232,37 +232,12 @@ def esia_parsing():
 
 
                 html_page = driver.page_source
-                result = read_html(html_page)
+                result = read_html(count_page, count, html_page)
 
-
-
-               
-
-                # executive_production.append({
-                #     '№ Страницы': count_page,
-                #     '№ ПП': count + 1,
-                #     '№ Исполнительного производства': number_ep,
-                #     'Начало ИП': start_date,
-                #     'Окончание ИП': end_date,
-                #     'Текущая задолженность': current_debt,
-                #     'Основной долг': main_debt,
-                #     'Исполнительский сбор': performance_fee,
-                #     'Погашенная часть': repaid_debt,
-                #     'Причина': reason,
-                #     'Основание': footing,
-                #     'Должник': debtor,
-                #     'Дата рождения': birthday,
-                #     'Место рождения': place_of_birth,
-                #     # 'Ограничения': restriction,
-                #     'Взыскатель': creditor,
-                #     'Судебный пристав': bailiff,
-                #     'Телефон пристава': bailiff_tel,
-                #     'РОСП': rosp,
-                #     'Адрес РОСП': address_rosp
-                # })
+                executive_production.append(result)
 
                 driver.back()
-                time.sleep(2)
+                time.sleep(0.5)
                 count += 1
             save_file(executive_production)
 
@@ -273,17 +248,13 @@ def esia_parsing():
         driver.quit()
 
 
-def read_html():
-    with open('data/fssp.html', 'r') as file:
-        html_page = file.read()
-
-
-    result = []
+def read_html(count_page, count, html_page):
+    # with open('data/fssp6.html', 'r') as file:
+    #     html_page = file.read()
     soup = BeautifulSoup(html_page, "html.parser")
 
-
     number_ep = soup.find('h4', class_="main-title mb-16").text.strip()
-    # print(f'{number_ep = }')
+    print(f'{number_ep = }')
     logging.info(f'{number_ep = }')
     if soup.find('p', class_="gray-text mb-8"):
         start_date = soup.find_all('p')[0].text.strip()
@@ -298,88 +269,82 @@ def read_html():
 
     main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
     # Проверка наличия задолженности
-    if "amount-owed mr-md-24 mb-24 mb-md-0" in soup.text:
+    if soup.find('span', class_="amount-owed mr-md-24 mb-24 mb-md-0"):
         current_debt = soup.find('span', class_="amount-owed mr-md-24 mb-24 mb-md-0").text.strip()
         # print(f'{current_debt = }')
 
         if 'Основной долг' in soup.text and 'Исполнительский сбор' in soup.text and 'Погашенная часть' in soup.text:
-            # main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
             main_debt = main_debt_all[0].find('span', class_="text-plain").text.strip()
-            # print(f'{main_debt = }')
             performance_fee = main_debt_all[1].find('span', class_="text-plain").text.strip()
-            # print(f'{performance_fee = }')
             repaid_debt = main_debt_all[2].find('span', class_="text-plain").text.strip()
-            # print(f'{repaid_debt = }')
         elif 'Основной долг' in soup.text and 'Исполнительский сбор' in soup.text and not 'Погашенная часть' in soup.text:
-            # main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
             main_debt = main_debt_all[0].find('span', class_="text-plain").text.strip()
-            # print(f'{main_debt = }')
             performance_fee = main_debt_all[1].find('span', class_="text-plain").text.strip()
-            # print(f'{performance_fee = }')
             repaid_debt = '-'
-            # print(f'{repaid_debt = }')
         elif 'Основной долг' in soup.text and not 'Исполнительский сбор' in soup.text and not 'Погашенная часть' in soup.text:
-            # main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
             main_debt = main_debt_all[0].find('span', class_="text-plain").text.strip()
             performance_fee = '-'
             repaid_debt = '-'
         elif 'Основной долг' in soup.text and not 'Исполнительский сбор' in soup.text and 'Погашенная часть' in soup.text:
-            # main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
             main_debt = main_debt_all[0].find('span', class_="text-plain").text.strip()
-            # print(f'{main_debt = }')
             performance_fee = '-'
-            # print(f'{performance_fee = }')
             repaid_debt = main_debt_all[1].find('span', class_="text-plain").text.strip()
-            # print(f'{repaid_debt = }')
         else:
             main_debt = '-'
             performance_fee = '-'
             repaid_debt = '-'
     else:
         current_debt = soup.find('span', class_="amount-owed mr-md-24 mb-24 mb-md-0 gray-amount").text.strip()
-        # print(f'{current_debt = }')
-        # main_debt_all = soup.find_all('div', class_="flex-container flex-column mb-16")
         main_debt = main_debt_all[0].find('span', class_="text-plain").text.strip()
-        # print(f'{main_debt = }')
         performance_fee = '-'
-        # print(f'{performance_fee = }')
         repaid_debt = main_debt_all[1].find('span', class_="text-plain").text.strip()
-        # print(f'{repaid_debt = }')
 
     border_block_all = soup.find_all('div', class_="border-block mb-24")
     if 'Причина' in soup.text:
         reason = border_block_all[1].find_all('div')[0].find('span', class_="info-text").text.strip()
-        # print(f'{reason = }')
         footing = border_block_all[1].find_all('div')[1].find('span', class_="info-text").text.strip()
-        # print(f'{footing = }')
     else:
         reason = '-'
-        # print(f'{reason = }')
         footing = border_block_all[1].find_all('div')[1].find('span', class_="info-text").text.strip()
-        # print(f'{footing = }')
 
     debtor = border_block_all[2].find('p').text.strip()
-    # print(f'{debtor = }')
     birthday = border_block_all[2].find_all('div')[0].find('span', class_="info-text").text.strip()
-    # print(f'{birthday = }')
     if 'Место рождения' in soup.text:
         place_of_birth = border_block_all[2].find_all('div')[1].find('span', class_="info-text").text.strip()
     else:
         place_of_birth = ''
     # restriction = soup.find(By.XPATH, '//div[@class="border-block mb-24"][4]/div/div/span').text.strip()
     # print(f'{restriction = }')
-    # soup.implicitly_wait(5)
     creditor =border_block_all[4].find('p').text.strip()
-    # print(f'{creditor = }')
     bailiff = border_block_all[5].find('p').text.strip()
-    # print(f'{bailiff = }')
     bailiff_tel = border_block_all[5].find_all('div')[0].find('span', class_="info-text").text.strip()
-    # print(f'{bailiff_tel = }')
     rosp = border_block_all[5].find_all('div')[1].find('span', class_="info-text").text.strip()
-    # print(f'{rosp = }')
     address_rosp = border_block_all[5].find_all('div')[2].find('span', class_="info-text").text.strip()
-    # print(f'{address_rosp = }')
-    x=1
+
+    result = {
+        '№ Страницы': count_page,
+        '№ ПП': count + 1,
+        '№ Исполнительного производства': number_ep,
+        'Начало ИП': start_date,
+        'Окончание ИП': end_date,
+        'Текущая задолженность': current_debt,
+        'Основной долг': main_debt,
+        'Исполнительский сбор': performance_fee,
+        'Погашенная часть': repaid_debt,
+        'Причина': reason,
+        'Основание': footing,
+        'Должник': debtor,
+        'Дата рождения': birthday,
+        'Место рождения': place_of_birth,
+        # 'Ограничения': restriction,
+        'Взыскатель': creditor,
+        'Судебный пристав': bailiff,
+        'Телефон пристава': bailiff_tel,
+        'РОСП': rosp,
+        'Адрес РОСП': address_rosp
+    }
+
+    return result
 
 
 
@@ -439,8 +404,8 @@ def save_file(items):
                              item['Адрес РОСП']])
 
 def main():
-    # esia_parsing()
-    read_html()
+    esia_parsing()
+    # read_html()
 
 if __name__ == '__main__':
     main()
