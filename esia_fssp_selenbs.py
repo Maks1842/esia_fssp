@@ -8,6 +8,7 @@
 '''
 import os
 import logging
+import gc         # Сборщик мусора
 
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -26,17 +27,32 @@ logging.basicConfig(filename='example.log', filemode='w', level=logging.INFO)
 
 def esia_parsing():
 
+    # options = webdriver.ChromeOptions()
+    # options.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36")
 
-    options = webdriver.ChromeOptions()
-    options.add_argument("user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36")
+    options = webdriver.FirefoxOptions()
+    options.add_argument("user-agent=Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:102.0) Gecko/20100101 Firefox/102.0")
+
 
     options.add_argument('--headless')     # Бот работает в фоновом режиме
 
-    driver = webdriver.Chrome(
-        executable_path="/media/maks/Новый том/Python/work/esia_fssp/webdriver/chromedriver_linux64/chromedriver",
+    # # Драйвер для Chrome
+    # driver = webdriver.Chrome(
+    #     executable_path="/media/maks/Новый том/Python/work/esia_fssp/webdriver/chromedriver_linux64/chromedriver",
+    #     options=options
+    # )
+
+    # Драйвер для Firefox
+    driver = webdriver.Firefox(
+        executable_path="/media/maks/Новый том/Python/work/esia_fssp/firefoxdriver/geckodriver-v0.31.0-linux64/geckodriver",
         options=options
     )
+
     driver.implicitly_wait(60)
+
+
+    # driver.set_window_size(1920, 1080)
+    driver.set_window_size(1800, 1000)
 
     try:
         driver.get("https://esia.gosuslugi.ru")
@@ -51,6 +67,7 @@ def esia_parsing():
         password.send_keys(esia_di_password)
         password.send_keys(Keys.ENTER)                    # вход по нажатии Enter, после ввода пароля
         # print('login')
+        time.sleep(3)
 
         # # cookies
         # cookies = driver.get_cookies()
@@ -92,7 +109,7 @@ def esia_parsing():
             # driver.implicitly_wait(10)
             driver.find_element(By.XPATH, xpath_esia).click()
             print('esia')
-            # time.sleep(5)
+            time.sleep(3)
 
 
             # Переход в раздел "Услуги"
@@ -190,8 +207,8 @@ def esia_parsing():
         count_page = 1
         count = 0
 
-        # # Блок используется для возобновления парсинга с указанного места
-        # for i in range(1, 50):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
+        # Блок используется для возобновления парсинга с указанного места
+        # for i in range(1, 39):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
         #     show1_more = '//div[@class="button-container"]'
         #     driver.find_element(By.XPATH, show1_more).click()
         #     print(f'Показать ещё (предварительно): стр_{count_page}')
@@ -216,14 +233,15 @@ def esia_parsing():
             xpath_xx = '//div[@class="shadow-container mb-24"]|//div[@class="shadow-container"]'
             items = driver.find_elements(By.XPATH, xpath_xx)
             number_items = len(items)
-            # print(f'count = {count}: Количество ИП_{number_items}')
+            logging.info(f'Количество ИП_{number_items}')
+            print(f'count = {count}: Количество ИП_{number_items}')
 
             for i in range(count, number_items):
-                # print(f'ИП {count + 1}')
+                print(f'ИП {count + 1}')
                 logging.info(f'ИП {count + 1}')
                 xpath_x = f'//div[@class="shadow-container mb-24"][{count + 1}]/h3/a|//div[@class="shadow-container"][1]/h3/a'
                 driver.find_element(By.XPATH, xpath_x).click()
-                time.sleep(1)
+                time.sleep(2)
                 # print('загрузка ИП')
 
                 xpath_details_click = '//div[@class="toggle-link mb-24"]'
@@ -240,6 +258,7 @@ def esia_parsing():
                 time.sleep(0.5)
                 count += 1
             save_file(executive_production)
+            gc.collect()          # Сборщик мусора
 
     except Exception as ex:
         print(ex)
@@ -305,7 +324,7 @@ def read_html(count_page, count, html_page):
         footing = border_block_all[1].find_all('div')[1].find('span', class_="info-text").text.strip()
     else:
         reason = '-'
-        footing = border_block_all[1].find_all('div')[1].find('span', class_="info-text").text.strip()
+        footing = border_block_all[1].find_all('div')[0].find('span', class_="info-text").text.strip()
 
     debtor = border_block_all[2].find('p').text.strip()
     birthday = border_block_all[2].find_all('div')[0].find('span', class_="info-text").text.strip()
@@ -345,8 +364,6 @@ def read_html(count_page, count, html_page):
     }
 
     return result
-
-
 
 
 def create_file():
