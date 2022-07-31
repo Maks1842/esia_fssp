@@ -144,56 +144,56 @@ def esia_parsing():
             xpath_information_ip = '//li[@data-ng-if="!service.hideAfterFilter"][2]'
             driver.find_element(By.XPATH, xpath_information_ip).click()
             print('information_ip')
-            time.sleep(5)
+            time.sleep(4)
 
             # Проверка наличия шаблона
             page_notifications = driver.page_source
             if 'conf-modal conf-modal--short' in page_notifications:
                 driver.find_element(By.XPATH, '//div[@class="conf-modal__controls"]/lib-button[1]').click()
                 print('проверка шаблона')
-                time.sleep(5)
+                time.sleep(4)
 
             # Выбор "Начать"
             xpath_start = '//div[@class="button-container"]'
             driver.find_element(By.XPATH, xpath_start).click()
             print('начать')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Нет"
             xpath_no_button = '//epgu-constructor-answer-button[@class="quiz__item"][2]/epgu-cf-ui-long-button[@class="answer-btn"]'
             driver.find_element(By.XPATH, xpath_no_button).click()
             print('no_button')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Верно" ФИО
             xpath_correctly_name = '//div[@class="button-container"]'
             driver.find_element(By.XPATH, xpath_correctly_name).click()
             print('correctly_name')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Верно" организация
             xpath_correctly_user = '//div[@class="button-container"]'
             driver.find_element(By.XPATH, xpath_correctly_user).click()
             print('user')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Верно" адрес регистрации
             xpath_correctly_registration = '//div[@class="button-container"]'
             driver.find_element(By.XPATH, xpath_correctly_registration).click()
             print('registration')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Взыскатель"
             xpath_claimer = '//epgu-constructor-answer-button[@class="quiz__item"][2]/epgu-cf-ui-long-button[@class="answer-btn"]'
             driver.find_element(By.XPATH, xpath_claimer).click()
             print('claimer')
-            time.sleep(5)
+            time.sleep(4)
 
             # Выбор "Да"
             xpath_ok_start = '//epgu-constructor-answer-button[@class="quiz__item"][1]/epgu-cf-ui-long-button[@class="answer-btn"]'
             driver.find_element(By.XPATH, xpath_ok_start).click()
             print('загрузка должников')
-            time.sleep(30)
+            time.sleep(20)
             current_url = driver.current_url
             print(current_url)
 
@@ -208,7 +208,7 @@ def esia_parsing():
         count = 0
 
         # Блок используется для возобновления парсинга с указанного места
-        # for i in range(1, 39):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
+        # for i in range(1, 2):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
         #     show1_more = '//div[@class="button-container"]'
         #     driver.find_element(By.XPATH, show1_more).click()
         #     print(f'Показать ещё (предварительно): стр_{count_page}')
@@ -230,7 +230,7 @@ def esia_parsing():
 
 
             # Получение ссылок на ИП
-            xpath_xx = '//div[@class="shadow-container mb-24"]|//div[@class="shadow-container"]'
+            xpath_xx = '//div[@class="content-container"]|//div[@class="mb-24"]'
             items = driver.find_elements(By.XPATH, xpath_xx)
             number_items = len(items)
             logging.info(f'Количество ИП_{number_items}')
@@ -239,14 +239,14 @@ def esia_parsing():
             for i in range(count, number_items):
                 print(f'ИП {count + 1}')
                 logging.info(f'ИП {count + 1}')
-                xpath_x = f'//div[@class="shadow-container mb-24"][{count + 1}]/h3/a|//div[@class="shadow-container"][1]/h3/a'
+                xpath_x = f'//app-fssp-list-item[{count + 1}]//div[@class="shadow-container"]/h3/a'
                 driver.find_element(By.XPATH, xpath_x).click()
-                time.sleep(2)
+                time.sleep(1)
                 # print('загрузка ИП')
 
                 xpath_details_click = '//div[@class="toggle-link mb-24"]'
                 driver.find_element(By.XPATH, xpath_details_click).click()
-                time.sleep(1)
+                time.sleep(0.5)
 
 
                 html_page = driver.page_source
@@ -369,7 +369,7 @@ def read_html(count_page, count, html_page):
 def create_file():
     current_date = date.today()
     today = current_date.strftime("%d-%m-%Y")
-    with open(f'data/fssp_{today}.csv', 'w') as file:                 # Создаю файл .csv с заголовками
+    with open(f'data/fssp_{today}.csv', 'w', encoding='utf-8') as file:                 # Создаю файл .csv с заголовками
         writer = csv.writer(file, delimiter=',')
         writer.writerow(['№ Страницы',
                          '№ ПП',
@@ -397,7 +397,7 @@ def save_file(items):
     current_date = date.today()
     today = current_date.strftime("%d-%m-%Y")
     for item in items:
-        with open(f'data/fssp_{today}.csv', 'a') as file:                           #Открываю файл на добавление данных: 'a'
+        with open(f'data/fssp_{today}.csv', 'a', encoding='utf-8') as file:                           #Открываю файл на добавление данных: 'a'
             writer = csv.writer(file)
             writer.writerow([item['№ Страницы'],
                              item['№ ПП'],
