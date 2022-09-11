@@ -64,9 +64,11 @@ def esia_parsing():
         password.clear()
 
         login.send_keys(esia_di_login)                    # ввод логина и пароля
+        print('login')
         password.send_keys(esia_di_password)
+        print('password')
+        time.sleep(0.5)
         password.send_keys(Keys.ENTER)                    # вход по нажатии Enter, после ввода пароля
-        # print('login')
         time.sleep(3)
 
         # # cookies
@@ -75,6 +77,8 @@ def esia_parsing():
 
         # Переход на страницу ЛК
         xpath_personal_account = 'btn-gotoback'
+        print('Вошел в Госуслуги')
+
         driver.find_element(By.CLASS_NAME, xpath_personal_account).click()    # нажатие ссылки
         # print('personal_account')
         time.sleep(5)
@@ -113,7 +117,6 @@ def esia_parsing():
 
 
             # Переход в раздел "Услуги"
-            # xpath_category = '//div[@class="flex-container justify-end"]/div[1]'
             xpath_category = '//a[@data-ng-href="/catalog?from=lmain"]'
             # driver.implicitly_wait(10)
             driver.find_element(By.XPATH, xpath_category).click()
@@ -207,8 +210,8 @@ def esia_parsing():
         count_page = 1
         count = 0
 
-        # Блок используется для возобновления парсинга с указанного места
-        # for i in range(1, 2):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
+        # # Блок используется для возобновления парсинга с указанного места
+        # for i in range(1, 54):                                          # Вторая цифра указывает номер страницы с которой надо возобновить парсинг (пока меняется в ручную)
         #     show1_more = '//div[@class="button-container"]'
         #     driver.find_element(By.XPATH, show1_more).click()
         #     print(f'Показать ещё (предварительно): стр_{count_page}')
@@ -230,18 +233,19 @@ def esia_parsing():
 
 
             # Получение ссылок на ИП
-            xpath_xx = '//div[@class="content-container"]|//div[@class="mb-24"]'
+            xpath_xx = '//app-fssp-list-item'
             items = driver.find_elements(By.XPATH, xpath_xx)
             number_items = len(items)
             logging.info(f'Количество ИП_{number_items}')
             print(f'count = {count}: Количество ИП_{number_items}')
+            time.sleep(2)
 
             for i in range(count, number_items):
                 print(f'ИП {count + 1}')
                 logging.info(f'ИП {count + 1}')
                 xpath_x = f'//app-fssp-list-item[{count + 1}]//div[@class="shadow-container"]/h3/a'
                 driver.find_element(By.XPATH, xpath_x).click()
-                time.sleep(1)
+                time.sleep(2)
                 # print('загрузка ИП')
 
                 xpath_details_click = '//div[@class="toggle-link mb-24"]'
@@ -254,8 +258,8 @@ def esia_parsing():
 
                 executive_production.append(result)
 
-                driver.back()
-                time.sleep(0.5)
+                driver.back()           # позволяет сценариям перемещаться на один шаг назад по истории браузера
+                time.sleep(1)
                 count += 1
             save_file(executive_production)
             gc.collect()          # Сборщик мусора
